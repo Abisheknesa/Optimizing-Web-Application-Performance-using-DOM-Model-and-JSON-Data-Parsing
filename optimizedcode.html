@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Optimized Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .highlight {
+      background-color: yellow;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Optimized DOM & JSON Example</h1>
+
+  <h2>1. Batched DOM Update</h2>
+  <ul id="user-list"></ul>
+
+  <h2>2. JSON Data (Simulated API)</h2>
+  <ul id="items"></ul>
+  <button id="load-more">Load More Items</button>
+
+  <script>
+    // ----------- 1. Batched DOM Manipulation -----------
+    const users = ['Alice', 'Bob', 'Charlie', 'Dana'];
+    const userList = document.getElementById('user-list');
+    const fragment = document.createDocumentFragment();
+
+    users.forEach(user => {
+      const li = document.createElement('li');
+      li.textContent = user;
+      fragment.appendChild(li);
+    });
+
+    userList.appendChild(fragment);
+
+    // ----------- 2. Simulated JSON Fetching & Pagination -----------
+    const itemsList = document.getElementById('items');
+    const loadMoreBtn = document.getElementById('load-more');
+    let currentPage = 1;
+    const pageSize = 5;
+
+    // Simulate API with static data
+    const allItems = Array.from({ length: 50 }, (_, i) => ({
+      name: `Product ${i + 1}`,
+      price: `$${(Math.random() * 100).toFixed(2)}`
+    }));
+
+    function fetchPaginatedItems(page, limit) {
+      return new Promise(resolve => {
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        setTimeout(() => {
+          resolve(allItems.slice(start, end));
+        }, 300); // simulate latency
+      });
+    }
+
+    async function loadItems() {
+      const items = await fetchPaginatedItems(currentPage, pageSize);
+      renderItems(items);
+      currentPage++;
+    }
+
+    function renderItems(items) {
+      const fragment = document.createDocumentFragment();
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - ${item.price}`;
+        fragment.appendChild(li);
+      });
+      itemsList.appendChild(fragment);
+    }
+
+    loadMoreBtn.addEventListener('click', loadItems);
+
+    // Load initial page
+    loadItems();
+
+    // ----------- 3. Debounced Resize Logging -----------
+    function debounce(fn, delay) {
+      let timeout;
+      return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+    window.addEventListener('resize', debounce(() => {
+      console.log('Window resized at', new Date().toLocaleTimeString());
+    }, 300));
+
+    // ----------- 4. Background JSON Task using requestIdleCallback -----------
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        console.log('Background processing when browser is idle');
+        // Example: Parsing large JSON or analytics processing
+      });
+    }
+  </script>
+
+</body>
+</html>
